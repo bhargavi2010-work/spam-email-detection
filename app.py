@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import pickle
 import re
 
@@ -15,6 +15,10 @@ def preprocess_text(text):
     text = text.lower()
     text = re.sub(r'[^a-z\s]', '', text)
     return text
+
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
