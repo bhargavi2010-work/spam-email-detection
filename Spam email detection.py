@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # Step 1: Import Libraries
 import pandas as pd
 import numpy as np
@@ -12,7 +9,8 @@ from nltk.tokenize import word_tokenize
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, precision_score, recall_score
+from preprocess import preprocess_text
 
 # Step 2: Download NLTK Resources
 nltk.download('punkt')
@@ -23,23 +21,38 @@ data = pd.read_csv('spam.csv', encoding='latin-1')
 data = data[['v1', 'v2']]
 data.columns = ['label', 'message']
 
-# Clean label column
+# Clean label column 
 data['label'] = data['label'].str.strip().str.lower()
 data = data[data['label'].isin(['ham', 'spam'])]  # Keep only ham/spam
 
-# Map labels to binary values
+# Map labels to binary values 
 data['label'] = data['label'].map({'ham': 0, 'spam': 1})
 
 # Drop missing messages and fill just in case
 data['message'] = data['message'].fillna('')
 
+# ADD PIE CHART DATA CODE RIGHT HERE
+
+spam_count = data['label'].value_counts()
+
+pie_data = {
+    "spam": int(spam_count[1]),
+    "ham": int(spam_count[0])
+}
+
+with open("pie_data.pkl", "wb") as f:
+    pickle.dump(pie_data, f)
+
 # Text preprocessing
 stop_words = set(stopwords.words('english'))
 
-def preprocess_text(text):
-    words = word_tokenize(text.lower())
-    words = [word for word in words if word.isalpha() and word not in stop_words]
-    return ' '.join(words)
+# Text preprocessing
+# stop_words = set(stopwords.words('english'))
+
+# def preprocess_text(text):
+#     words = word_tokenize(text.lower())
+#     words = [word for word in words if word.isalpha() and word not in stop_words]
+#     return ' '.join(words)
 
 data['message'] = data['message'].apply(preprocess_text)
 
@@ -61,9 +74,26 @@ model.fit(X_train, y_train)
 
 # Step 7: Evaluate Model
 y_pred = model.predict(X_test)
+
 accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+
 print(f"Accuracy: {accuracy}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+
 print("Classification Report:\n", classification_report(y_test, y_pred))
+
+# Save evaluation metrics
+metrics = {
+    "accuracy": accuracy,
+    "precision": precision,
+    "recall": recall
+}
+
+with open("metrics.pkl", "wb") as f:
+    pickle.dump(metrics, f)
 
 # Step 8: Save Model and Vectorizer
 with open("model.pkl", "wb") as f:
@@ -71,6 +101,11 @@ with open("model.pkl", "wb") as f:
 
 with open("vectorizer.pkl", "wb") as f:
     pickle.dump(vectorizer, f)
+
+print("\n==============================")
+print("Model Trained Successfully!")
+print(f"Accuracy : {accuracy:.2f}")
+print("==============================\n")
 
 # Step 9: (Optional) Test on New Input
 def predict_spam(text):
@@ -81,3 +116,4 @@ def predict_spam(text):
 
 # Example prediction
 print("Test:", predict_spam("Congratulations! You've won a $1000 gift card. Claim now!"))
+

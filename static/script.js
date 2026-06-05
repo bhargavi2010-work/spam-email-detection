@@ -3,16 +3,12 @@ function predict() {
 
     fetch("/predict", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message: message })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message})
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-        document.getElementById("result").innerText = "Prediction: " + data.prediction;
-    })
-    .catch(error => {
-        document.getElementById("result").innerText = "Error: " + error;
+        document.getElementById("result").innerText =
+            "Prediction: " + data.prediction;
     });
 }

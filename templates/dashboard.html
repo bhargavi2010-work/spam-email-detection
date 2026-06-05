@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spam Email Detection Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background-image: url("/static/bg.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+
+            font-family: "Times New Roman", Times, serif;
+            color: black;
+            text-align: center;
+        }
+
+        /* MAIN TITLE */
+        h1 {
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 30px;
+        }
+
+        /* SECTION HEADINGS */
+        h2 {
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        /* GLASSMORPHISM CARD */
+        .card {
+            background: rgba(255, 255, 255, 0.05); /* almost fully transparent */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+
+            padding: 15px;
+            margin: 40px auto;
+            width: 65%;
+            border-radius: 14px;
+
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            border: 1px solid rgba(252, 252, 252, 0.4);
+            color: black;
+        }
+
+        /* Reduce top margin of card headings */
+        .card h2 {
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        /* Specific width for performance card */
+        .performance-card {
+            width: 25%;
+        }
+
+        /* Smaller card only for pie chart */
+        .pie-card {
+            width: 35%;
+        }
+
+        /* ITALIC STATS LABELS */
+        .stats-label {
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        textarea {
+            width: 92%;
+            height: 100px;
+            font-size: 16px;
+            padding: 12px;
+
+            font-family: Arial, sans-serif;
+            color: black;
+
+            border-radius: 6px;
+            border: 1px solid #666;
+        }
+
+        button {
+            padding: 10px 30px;
+            font-size: 18px;
+            background: #ca84f6;
+            color: white;
+            border: none;
+            margin-top: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-family: "Times New Roman", Times, serif;
+            font-weight: bold;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background: #c064f9;
+            transform: scale(1.03);
+        }
+
+        #result {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        canvas {
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Spam Email Detection Dashboard</h1>
+
+<!-- PERFORMANCE SECTION -->
+<div class="card performance-card">
+    <h2>Performance Analysis</h2>
+    <p><span class="stats-label">Accuracy</span> : {{ accuracy | round(2) }}</p>
+    <p><span class="stats-label">Precision</span> : {{ precision | round(2) }}</p>
+    <p><span class="stats-label">Recall</span> : {{ recall | round(2) }}</p>
+</div>
+
+<!-- PIE CHART SECTION -->
+<div class="card pie-card">
+    <h2>Email Distribution</h2>
+    <canvas id="pieChart" width="220" height="220"></canvas>
+</div>
+
+<!-- PREDICTION SECTION -->
+<div class="card">
+    <h2>Email Spam Prediction</h2>
+    <textarea id="messageInput" placeholder="Enter email message here..."></textarea><br>
+    <button onclick="predict()">Check</button>
+    <button onclick="clearFields()">Clear</button>
+    <h3 id="result"></h3>
+</div>
+
+<script>
+    const ctx = document.getElementById('pieChart').getContext('2d');
+
+    // Create vertical gradients for 3D effect
+    const gradientSpam = ctx.createLinearGradient(0, 0, 0, 220);
+    gradientSpam.addColorStop(0, '#f59595');
+    gradientSpam.addColorStop(1, '#d9534f');
+
+    const gradientHam = ctx.createLinearGradient(0, 0, 0, 220);
+    gradientHam.addColorStop(0, '#9cd196');
+    gradientHam.addColorStop(1, '#6bbd77');
+
+    // Doughnut chart with 3D effect
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Spam', 'No Spam'],
+            datasets: [{
+                data: [{{ spam }}, {{ ham }}], 
+                backgroundColor: [gradientSpam, gradientHam],
+                borderColor: 'rgba(0,0,0,0.2)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: false,
+            cutout: '30%', // inner radius for 3D illusion
+            rotation: -90, // tilt start angle
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: 'black',
+                        font: {
+                            family: "Times New Roman",
+                            size: 14
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Prediction
+    function predict() {
+        const message = document.getElementById("messageInput").value.trim();
+        
+        // Validation: Check empty input
+        if (message === "") {
+            document.getElementById("result").innerText = "⚠️ Please enter a message!";
+            document.getElementById("result").style.color = "red";
+            return;
+        }
+        
+        fetch("/predict", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ message: message })
+        })
+        
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("result").innerText = `Prediction: ${data.prediction} (${data.confidence}%)`;
+
+            result.style.color = data.prediction === "Spam" ? "red" : "green";
+        });
+        
+    }
+
+    // Clear input fields 
+    function clearFields() {
+        document.getElementById("messageInput").value = "";
+        document.getElementById("result").innerText = "";
+    }
+
+</script>
+
+</body>
+</html>
