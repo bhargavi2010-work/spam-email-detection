@@ -46,14 +46,6 @@ with open("pie_data.pkl", "wb") as f:
 # Text preprocessing
 stop_words = set(stopwords.words('english'))
 
-# Text preprocessing
-# stop_words = set(stopwords.words('english'))
-
-# def preprocess_text(text):
-#     words = word_tokenize(text.lower())
-#     words = [word for word in words if word.isalpha() and word not in stop_words]
-#     return ' '.join(words)
-
 data['message'] = data['message'].apply(preprocess_text)
 
 # Step 4: Feature Extraction

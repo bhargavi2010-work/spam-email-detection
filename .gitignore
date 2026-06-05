@@ -1,12 +1,6 @@
 __pycache__/
 .ipynb_checkpoints/
 *.pyc
-metrics.pkl
-pie_data.pkl
-
-# ML model files
-metrics.pkl
-pie_data.pkl
 
 # Virtual Environment 
 spam_env/

@@ -25,14 +25,6 @@ with open('model/model.pkl', 'rb') as f:
 with open('model/vectorizer.pkl', 'rb') as f:
     vectorizer = pickle.load(f) 
 
-app = Flask(__name__)  
-
-# Data preprocessing
-# def preprocess_text(text):
-#     text = text.lower()
-#     text = re.sub(r'[^a-z\s]', '', text)
-#     return text
-
 # Routes
 @app.route('/')
 def home():
@@ -86,7 +78,6 @@ def pie():
         spam=pie_data["spam"],
         ham=pie_data["ham"]
     )
-
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
