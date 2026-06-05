@@ -19,7 +19,27 @@ A Machine Learning-based web application that classifies emails/messages as **Sp
 - Flask  
 - Scikit-learn  
 - Pandas, NumPy  
-- HTML, CSS  
+- HTML, CSS
+
+--- 
+
+## 🔍 NLP Pipeline
+
+The application uses Natural Language Processing techniques:
+
+* Text cleaning (removing special characters)
+* Lowercasing
+* Tokenization
+* Stopword removal
+* TF-IDF vectorization
+---
+## 📈 Model Performance
+
+Metrics are computed during training and stored for dashboard visualization:
+
+* Accuracy
+* Precision
+* Recall
 
 ---
 ## 📂 Project Structure
@@ -87,7 +107,7 @@ Endpoint:
 POST /predict
 ```
 
-### Example Request:
+### Request:
 ```
 </>/JSON
 {
@@ -104,13 +124,17 @@ POST /predict
 --- 
 
 ## 📊 Model Information
-* Algorithm: Naive Bayes
-* Vectorizer: TF-IDF
+* Algorithm: Multinomial Naive Baye
+* Vectorizer: TF-IDF (max_features=3000)
 * Dataset: SMS Spam Collection Dataset
+* Evaluation Metrics:
+  * Accuracy
+  * Precision
+  * Recall
 ---
 ## 🚀 Deployment (Optional)
 
 Can be deployed using:
 * Render 
 * Heroku 
-* AWS / GCP 
+* AWS / GCP
