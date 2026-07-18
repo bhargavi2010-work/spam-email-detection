@@ -31,8 +31,7 @@ data['label'] = data['label'].map({'ham': 0, 'spam': 1})
 # Drop missing messages and fill just in case
 data['message'] = data['message'].fillna('')
 
-# ADD PIE CHART DATA CODE RIGHT HERE
-
+# Pie Chart Data Code 
 spam_count = data['label'].value_counts()
 
 pie_data = {

@@ -59,7 +59,7 @@ python -m venv spam_env
 ### 3. Activate Environment
 ▶️ Windows:
 ```
-spam_env\Scripts\activate
+.\spam_env\Scripts\activate
 ```
 ▶️ Mac/Linux:
 ```
