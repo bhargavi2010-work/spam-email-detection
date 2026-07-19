@@ -49,11 +49,12 @@ spam-email-detection/
 │
 ├── app.py
 ├── preprocess.py
-├── spam_email_detection.py
-├── spam_email_detection.ipynb
+├── train.py
 ├── requirements.txt
 ├── Procfile   
-├── spam.csv
+│
+├── data/
+│   └── spam.csv
 │
 ├── model/
 │   ├── model.pkl
@@ -61,12 +62,18 @@ spam-email-detection/
 │   ├── metrics.pkl
 │   ├── pie_data.pkl
 │
+├── notebook/
+│   └── spam_email_detection.ipynb
+│
 ├── templates/
 │   └── dashboard.html
 │
 ├── static/
+│   ├── bg.png
+│   └── script.js
 │
 └── README.md
+
 ```
 ---
 
