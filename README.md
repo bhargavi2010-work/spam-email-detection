@@ -51,7 +51,8 @@ spam-email-detection/
 ├── preprocess.py
 ├── train.py
 ├── requirements.txt
-├── Procfile   
+├── Procfile
+├── .gitignore
 │
 ├── data/
 │   └── spam.csv
@@ -120,12 +121,12 @@ POST /predict
 ```
 
 ### Request:
-```
-</>/JSON
+```json
 {
   "message": "Win a free iPhone now!"
 }
 ```
+
 ### Response:
 ```
 {
@@ -136,7 +137,7 @@ POST /predict
 --- 
 
 ## 📊 Model Information
-* Algorithm: Multinomial Naive Baye
+* Algorithm: Multinomial Naive Bayes
 * Vectorizer: TF-IDF (max_features=3000)
 * Dataset: SMS Spam Collection Dataset
 * Evaluation Metrics:
