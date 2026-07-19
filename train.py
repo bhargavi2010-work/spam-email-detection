@@ -1,4 +1,4 @@
-# Step 1: Import Libraries
+# Import Libraries
 import pandas as pd
 import numpy as np
 import re
@@ -12,14 +12,10 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, classification_report, precision_score, recall_score
 from preprocess import preprocess_text
 
-# Step 2: Download NLTK Resources
-nltk.download('punkt')
-nltk.download('stopwords')
-
-# Step 3: Load and Preprocess Dataset
-data = pd.read_csv('spam.csv', encoding='latin-1')
+# Load and Preprocess Dataset
+data = pd.read_csv('data/spam.csv', encoding='latin-1')
 data = data[['v1', 'v2']]
-data.columns = ['label', 'message']
+data.columns = ['label', 'message'] 
 
 # Clean label column 
 data['label'] = data['label'].str.strip().str.lower()
@@ -39,7 +35,7 @@ pie_data = {
     "ham": int(spam_count[0])
 }
 
-with open("pie_data.pkl", "wb") as f:
+with open("model/pie_data.pkl", "wb") as f:
     pickle.dump(pie_data, f)
 
 # Text preprocessing
@@ -47,7 +43,7 @@ stop_words = set(stopwords.words('english'))
 
 data['message'] = data['message'].apply(preprocess_text)
 
-# Step 4: Feature Extraction
+# Feature Extraction
 vectorizer = TfidfVectorizer(max_features=3000)
 X = vectorizer.fit_transform(data['message'])
 y = data['label']
@@ -56,14 +52,14 @@ y = data['label']
 assert not np.any(np.isnan(X.toarray())), "X contains NaNs"
 assert not y.isnull().any(), "y contains NaNs"
 
-# Step 5: Train-Test Split
+# Train-Test Split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Step 6: Train Model
+# Train Model
 model = MultinomialNB()
 model.fit(X_train, y_train)
 
-# Step 7: Evaluate Model
+# Evaluate Model
 y_pred = model.predict(X_test)
 
 accuracy = accuracy_score(y_test, y_pred)
@@ -83,14 +79,14 @@ metrics = {
     "recall": recall
 }
 
-with open("metrics.pkl", "wb") as f:
+with open("model/metrics.pkl", "wb") as f:
     pickle.dump(metrics, f)
 
-# Step 8: Save Model and Vectorizer
-with open("model.pkl", "wb") as f:
+# Save Model and Vectorizer 
+with open("model/model.pkl", "wb") as f:
     pickle.dump(model, f)
 
-with open("vectorizer.pkl", "wb") as f:
+with open("model/vectorizer.pkl", "wb") as f:
     pickle.dump(vectorizer, f)
 
 print("\n==============================")
@@ -98,7 +94,7 @@ print("Model Trained Successfully!")
 print(f"Accuracy : {accuracy:.2f}")
 print("==============================\n")
 
-# Step 9: (Optional) Test on New Input
+# (Optional) Test on New Input
 def predict_spam(text):
     text = preprocess_text(text)
     text_vec = vectorizer.transform([text])
@@ -108,3 +104,6 @@ def predict_spam(text):
 # Example prediction
 print("Test:", predict_spam("Congratulations! You've won a $1000 gift card. Claim now!"))
 
+if __name__ == "__main__":
+    print("Training started...")
+    
