@@ -4,6 +4,22 @@ A Machine Learning-based web application that classifies emails/messages as **Sp
 
 ---
 
+## 🔍 Project Preview:
+
+### Dashboard:
+Shows model metrics and visualization.
+
+<img width="944" height="500" alt="image" src="https://github.com/user-attachments/assets/d3795a8e-fa26-4b15-9870-d016c25e6bcb" />
+
+
+### Spam Detection:
+Example of spam classification with confidence score.
+<img width="938" height="500" alt="image" src="https://github.com/user-attachments/assets/37ea236c-0f7a-481a-b42a-7c0f05b7b6ae" />
+
+<img width="939" height="499" alt="image" src="https://github.com/user-attachments/assets/3efd09e8-6dde-4ac4-96f4-c61f92d724a7" />
+
+--- 
+
 ## 🚀 Features
 
 - Detects spam messages instantly  
@@ -128,7 +144,7 @@ POST /predict
 ```
 
 ### Response:
-```
+```json
 {
   "prediction": "Spam",
   "confidence": 75.22
@@ -151,3 +167,5 @@ Can be deployed using:
 * Render 
 * Heroku 
 * AWS / GCP
+
+---
