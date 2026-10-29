@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Spam Email Detection Dashboard</title>
+    <title>AI Email Threat & Forensic Intelligence Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -11,209 +11,565 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-
-            font-family: "Times New Roman", Times, serif;
-            color: black;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #1e293b;
             text-align: center;
+            margin: 0;
+            padding: 20px;
         }
 
-        /* MAIN TITLE */
         h1 {
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-top: 30px;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+            margin-top: 15px;
+            margin-bottom: 5px;
         }
 
-        /* SECTION HEADINGS */
-        h2 {
-            font-weight: bold;
-            letter-spacing: 0.5px;
+        .subtitle {
+            font-size: 15px;
+            color: #475569;
+            margin-bottom: 25px;
         }
 
-        /* GLASSMORPHISM CARD */
+        .top-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            max-width: 950px;
+            margin: 0 auto 30px auto;
+            flex-wrap: wrap;
+        }
+
         .card {
-            background: rgba(255, 255, 255, 0.05); /* almost fully transparent */
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-
-            padding: 15px;
-            margin: 40px auto;
-            width: 65%;
-            border-radius: 14px;
-
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            border: 1px solid rgba(252, 252, 252, 0.4);
-            color: black;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            text-align: left;
         }
 
-        /* Reduce top margin of card headings */
         .card h2 {
-            margin-top: 5px;
-            margin-bottom: 10px;
+            margin-top: 0;
+            font-size: 20px;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* Specific width for performance card */
-        .performance-card {
-            width: 25%;
+        .stat-badge {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
 
-        /* Smaller card only for pie chart */
-        .pie-card {
-            width: 35%;
+        .stat-badge strong {
+            color: #4f46e5;
         }
 
-        /* ITALIC STATS LABELS */
-        .stats-label {
-            font-style: italic;
-            font-weight: normal;
+        /* TABS */
+        .tab-container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: -1px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid #cbd5e1;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #64748b;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: #4f46e5;
+            border-top: 3px solid #4f46e5;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.04);
+        }
+
+        .tab-panel {
+            display: none;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0 16px 16px 16px;
+            padding: 26px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            text-align: left;
+        }
+
+        .tab-panel.active {
+            display: block;
         }
 
         textarea {
-            width: 92%;
-            height: 100px;
-            font-size: 16px;
+            width: 100%;
+            height: 120px;
+            font-size: 14px;
             padding: 12px;
-
-            font-family: Arial, sans-serif;
-            color: black;
-
-            border-radius: 6px;
-            border: 1px solid #666;
+            font-family: inherit;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-sizing: border-box;
+            resize: vertical;
         }
 
-        button {
-            padding: 10px 30px;
-            font-size: 18px;
-            background: #ca84f6;
+        .btn-primary {
+            padding: 10px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            background: #4f46e5;
             color: white;
             border: none;
-            margin-top: 12px;
-            cursor: pointer;
             border-radius: 8px;
-            font-family: "Times New Roman", Times, serif;
-            font-weight: bold;
-            transition: 0.3s ease;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
-        button:hover {
-            background: #c064f9;
-            transform: scale(1.03);
+        .btn-primary:hover {
+            background: #4338ca;
         }
 
-        #result {
-            margin-top: 10px;
-            font-weight: bold;
+        .btn-secondary {
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
-        canvas {
-            margin: auto;
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* FORENSIC BADGES & METRICS */
+        .auth-badges {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-pass { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .badge-fail { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-warn { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-neutral { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+        .risk-banner {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .risk-score-num {
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        .findings-list {
+            background: #f8fafc;
+            border-left: 4px solid #ef4444;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+            list-style-type: none;
+        }
+
+        .findings-list li {
+            padding: 4px 0;
+            font-size: 13.5px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+
+        .info-box span {
+            color: #64748b;
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed #94a3b8;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background: #f8fafc;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .upload-dropzone:hover {
+            border-color: #4f46e5;
+            background: #eef2ff;
         }
     </style>
 </head>
-
 <body>
 
-<h1>Spam Email Detection Dashboard</h1>
+    <h1>AI Email Threat & Forensic Intelligence Platform</h1>
+    <div class="subtitle">Multi-Vector Threat Detection, Protocol Verification & Header Traceability</div>
 
-<!-- PERFORMANCE SECTION -->
-<div class="card performance-card">
-    <h2>Performance Analysis</h2>
-    <p><span class="stats-label">Accuracy</span> : {{ accuracy | round(2) }}</p>
-    <p><span class="stats-label">Precision</span> : {{ precision | round(2) }}</p>
-    <p><span class="stats-label">Recall</span> : {{ recall | round(2) }}</p>
-</div>
+    <!-- TOP ROW: MODEL METRICS & DISTRIBUTION -->
+    <div class="top-row">
+        <!-- PERFORMANCE CARD -->
+        <div class="card" style="flex: 1; min-width: 280px;">
+            <h2>Model Metrics</h2>
+            <div class="stat-badge"><span>Accuracy:</span> <strong>{{ accuracy | round(2) }}</strong></div>
+            <div class="stat-badge"><span>Precision:</span> <strong>{{ precision | round(2) }}</strong></div>
+            <div class="stat-badge"><span>Recall:</span> <strong>{{ recall | round(2) }}</strong></div>
+        </div>
 
-<!-- PIE CHART SECTION -->
-<div class="card pie-card">
-    <h2>Email Distribution</h2>
-    <canvas id="pieChart" width="220" height="220"></canvas>
-</div>
+        <!-- PIE CHART CARD -->
+        <div class="card" style="flex: 1; min-width: 280px; text-align: center;">
+            <h2 style="justify-content: center;">Dataset Distribution</h2>
+            <canvas id="pieChart" width="160" height="160" style="margin: 0 auto;"></canvas>
+        </div>
+    </div>
 
-<!-- PREDICTION SECTION -->
-<div class="card">
-    <h2>Email Spam Prediction</h2>
-    <textarea id="messageInput" placeholder="Enter email message here..."></textarea><br>
-    <button onclick="predict()">Check</button>
-    <button onclick="clearFields()">Clear</button>
-    <h3 id="result"></h3>
-</div>
+    <!-- MAIN TABS CONTAINER -->
+    <div class="tab-container">
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('forensics')">🛡️ Deep Forensic & .EML Analyzer</button>
+            <button class="tab-btn" onclick="switchTab('quick')">⚡ Quick Message Check</button>
+        </div>
 
-<script>
-    const ctx = document.getElementById('pieChart').getContext('2d');
+        <!-- TAB 1: FORENSIC ANALYZER -->
+        <div id="tab-forensics" class="tab-panel active">
+            <h3 style="margin-top:0;">Deep Email Forensics & Protocol Inspection</h3>
+            <p style="color:#64748b; font-size:14px; margin-top:-5px;">Upload a <code>.eml</code> email file or paste raw email content with headers to inspect SPF/DKIM/DMARC, relay hops, and sender origin.</p>
 
-    // Create vertical gradients for 3D effect
-    const gradientSpam = ctx.createLinearGradient(0, 0, 0, 220);
-    gradientSpam.addColorStop(0, '#f59595');
-    gradientSpam.addColorStop(1, '#d9534f');
+            <!-- FILE UPLOAD -->
+            <div class="upload-dropzone" onclick="document.getElementById('emlFileInput').click()">
+                <input type="file" id="emlFileInput" accept=".eml,.txt" style="display:none;" onchange="handleFileUpload(event)">
+                <div id="uploadLabel">📁 Drag & drop a <strong>.eml file</strong> here, or click to browse</div>
+            </div>
 
-    const gradientHam = ctx.createLinearGradient(0, 0, 0, 220);
-    gradientHam.addColorStop(0, '#9cd196');
-    gradientHam.addColorStop(1, '#6bbd77');
+            <textarea id="rawEmailInput" placeholder="...or paste raw email headers & body here..."></textarea>
+            
+            <div style="margin-top: 12px; display: flex; gap: 10px;">
+                <button class="btn-primary" onclick="runForensics()">🔍 Run Forensic Analysis</button>
+                <button class="btn-secondary" onclick="loadSamplePhish()">Load Sample Phish</button>
+                <button class="btn-secondary" onclick="clearForensics()">Clear</button>
+            </div>
 
-    // Doughnut chart with 3D effect
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Spam', 'No Spam'],
-            datasets: [{
-                data: [{{ spam }}, {{ ham }}], 
-                backgroundColor: [gradientSpam, gradientHam],
-                borderColor: 'rgba(0,0,0,0.2)',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: false,
-            cutout: '30%', // inner radius for 3D illusion
-            rotation: -90, // tilt start angle
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: 'black',
-                        font: {
-                            family: "Times New Roman",
-                            size: 14
-                        }
-                    }
-                }
+            <!-- FORENSIC RESULTS CONTAINER -->
+            <div id="forensicResults" style="display:none; margin-top:25px;">
+                <!-- RISK SCORE BANNER -->
+                <div id="riskBanner" class="risk-banner">
+                    <div>
+                        <div id="riskLevelTitle" style="font-size: 18px; font-weight: 700;"></div>
+                        <div style="font-size: 13px; color: #475569;">Forensic Threat Risk Assessment</div>
+                    </div>
+                    <div id="riskScoreValue" class="risk-score-num"></div>
+                </div>
+
+                <!-- PROTOCOL AUTHENTICATION BADGES -->
+                <h4 style="margin: 15px 0 8px 0;">Protocol Authentication (SPF / DKIM / DMARC)</h4>
+                <div class="auth-badges">
+                    <span id="badgeSPF" class="badge">SPF: ...</span>
+                    <span id="badgeDKIM" class="badge">DKIM: ...</span>
+                    <span id="badgeDMARC" class="badge">DMARC: ...</span>
+                    <span id="badgeSpoof" class="badge">Display Name: ...</span>
+                </div>
+
+                <!-- ENVELOPE & EVIDENCE DETAILS -->
+                <h4 style="margin: 20px 0 8px 0;">Envelope & Traceability</h4>
+                <div class="info-grid">
+                    <div class="info-box"><span>Originating IP</span><strong id="infoOriginIP">-</strong></div>
+                    <div class="info-box"><span>From Header</span><strong id="infoFrom">-</strong></div>
+                    <div class="info-box"><span>Reply-To</span><strong id="infoReplyTo">-</strong></div>
+                    <div class="info-box"><span>Return-Path</span><strong id="infoReturnPath">-</strong></div>
+                    <div class="info-box"><span>Relay Hops</span><strong id="infoHops">-</strong></div>
+                    <div class="info-box"><span>NLP Content Result</span><strong id="infoNLP">-</strong></div>
+                </div>
+
+                <!-- FINDINGS LIST -->
+                <h4 style="margin: 20px 0 8px 0;">Forensic Findings & Security Indicators</h4>
+                <ul id="findingsList" class="findings-list"></ul>
+
+                <!-- SHA256 EVIDENCE -->
+                <div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-top: 15px;">
+                    <strong>Evidence SHA-256:</strong> <span id="infoSHA256">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: QUICK MESSAGE PREDICTION -->
+        <div id="tab-quick" class="tab-panel">
+            <h3 style="margin-top:0;">Quick Text Spam Classifier</h3>
+            <p style="color:#64748b; font-size:14px; margin-top:-5px;">Test any raw text string directly against the trained NLP Naive Bayes model.</p>
+            <textarea id="messageInput" placeholder="Enter message text here..."></textarea>
+            <div style="margin-top: 12px; display: flex; gap: 10px;">
+                <button class="btn-primary" onclick="predictQuick()">Check Message</button>
+                <button class="btn-secondary" onclick="clearQuick()">Clear</button>
+            </div>
+            <h3 id="quickResult" style="margin-top: 20px;"></h3>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+            if (tab === 'forensics') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tab-forensics').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tab-quick').classList.add('active');
             }
         }
-    });
 
-    // Prediction
-    function predict() {
-        const message = document.getElementById("messageInput").value.trim();
-        
-        // Validation: Check empty input
-        if (message === "") {
-            document.getElementById("result").innerText = "⚠️ Please enter a message!";
-            document.getElementById("result").style.color = "red";
-            return;
-        }
-        
-        fetch("/predict", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ message: message })
-        })
-        
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("result").innerText = `Prediction: ${data.prediction} (${data.confidence}%)`;
-
-            result.style.color = data.prediction === "Spam" ? "red" : "green";
+        // Render Distribution Chart
+        const ctx = document.getElementById('pieChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Spam', 'Ham'],
+                datasets: [{
+                    data: [{{ spam }}, {{ ham }}],
+                    backgroundColor: ['#ef4444', '#10b981'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } } }
+            }
         });
-        
-    }
 
-    // Clear input fields 
-    function clearFields() {
-        document.getElementById("messageInput").value = "";
-        document.getElementById("result").innerText = "";
-    }
+        // Quick prediction
+        function predictQuick() {
+            const message = document.getElementById("messageInput").value.trim();
+            if (!message) {
+                document.getElementById("quickResult").innerText = "⚠️ Please enter a message!";
+                document.getElementById("quickResult").style.color = "red";
+                return;
+            }
+            fetch("/predict", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ message: message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const resEl = document.getElementById("quickResult");
+                resEl.innerText = `Prediction: ${data.prediction} (${data.confidence}% confidence)`;
+                resEl.style.color = data.prediction === "Spam" ? "#dc2626" : "#16a34a";
+            });
+        }
 
-</script>
+        function clearQuick() {
+            document.getElementById("messageInput").value = "";
+            document.getElementById("quickResult").innerText = "";
+        }
 
+        // Handle file upload
+        let selectedFile = null;
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('uploadLabel').innerHTML = `✅ Selected File: <strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB)`;
+            }
+        }
+
+        // Run Forensics
+        function runForensics() {
+            const rawText = document.getElementById('rawEmailInput').value.trim();
+            const formData = new FormData();
+
+            if (selectedFile) {
+                formData.append('file', selectedFile);
+            } else if (rawText) {
+                formData.append('raw_email', rawText);
+            } else {
+                alert("Please upload a .eml file or paste raw email content with headers!");
+                return;
+            }
+
+            fetch('/analyze-email', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.status !== 'success') {
+                    alert("Error: " + (resp.error || "Analysis failed"));
+                    return;
+                }
+                renderForensics(resp.data);
+            })
+            .catch(err => alert("Request failed: " + err));
+        }
+
+        function renderForensics(data) {
+            document.getElementById('forensicResults').style.display = 'block';
+
+            const assessment = data.forensic_assessment;
+            const banner = document.getElementById('riskBanner');
+            const scoreEl = document.getElementById('riskScoreValue');
+            const levelEl = document.getElementById('riskLevelTitle');
+
+            scoreEl.innerText = assessment.risk_score + " / 100";
+            levelEl.innerText = assessment.risk_level;
+
+            if (assessment.risk_score >= 70) {
+                banner.style.background = "#fee2e2";
+                banner.style.color = "#991b1b";
+                banner.style.border = "1px solid #f87171";
+            } else if (assessment.risk_score >= 35) {
+                banner.style.background = "#fef3c7";
+                banner.style.color = "#92400e";
+                banner.style.border = "1px solid #fcd34d";
+            } else {
+                banner.style.background = "#dcfce7";
+                banner.style.color = "#166534";
+                banner.style.border = "1px solid #86efac";
+            }
+
+            // Badges
+            setBadge('badgeSPF', 'SPF', data.authentication.spf);
+            setBadge('badgeDKIM', 'DKIM', data.authentication.dkim);
+            setBadge('badgeDMARC', 'DMARC', data.authentication.dmarc);
+            
+            const spoofBadge = document.getElementById('badgeSpoof');
+            if (data.spoofing_checks.is_display_name_spoofed) {
+                spoofBadge.className = 'badge badge-fail';
+                spoofBadge.innerText = 'Display Name: SPOOFED';
+            } else {
+                spoofBadge.className = 'badge badge-pass';
+                spoofBadge.innerText = 'Display Name: Normal';
+            }
+
+            // Envelope Info
+            document.getElementById('infoOriginIP').innerText = data.traceability.origin_ip || 'Not Found';
+            document.getElementById('infoFrom').innerText = data.envelope.from_header || '-';
+            document.getElementById('infoReplyTo').innerText = data.envelope.reply_to || 'None';
+            document.getElementById('infoReturnPath').innerText = data.envelope.return_path || 'None';
+            document.getElementById('infoHops').innerText = data.traceability.total_hops + ' Hops traced';
+            
+            const nlp = data.nlp_analysis;
+            document.getElementById('infoNLP').innerText = nlp ? `${nlp.prediction} (${nlp.confidence}%)` : 'No text body';
+
+            // Findings List
+            const findingsUl = document.getElementById('findingsList');
+            findingsUl.innerHTML = '';
+            if (assessment.findings.length === 0) {
+                findingsUl.innerHTML = '<li style="color:#166534;">✅ No protocol violations or spoofing indicators detected.</li>';
+                findingsUl.style.borderLeftColor = '#10b981';
+            } else {
+                findingsUl.style.borderLeftColor = assessment.risk_score >= 70 ? '#ef4444' : '#f59e0b';
+                assessment.findings.forEach(f => {
+                    const li = document.createElement('li');
+                    li.innerText = '⚠️ ' + f;
+                    findingsUl.appendChild(li);
+                });
+            }
+
+            document.getElementById('infoSHA256').innerText = data.forensic_evidence.sha256;
+        }
+
+        function setBadge(elementId, label, status) {
+            const el = document.getElementById(elementId);
+            el.innerText = `${label}: ${status}`;
+            if (status === 'PASS') {
+                el.className = 'badge badge-pass';
+            } else if (status === 'FAIL') {
+                el.className = 'badge badge-fail';
+            } else if (status === 'SOFTFAIL' || status === 'PRESENT (Not Verified by MTA)') {
+                el.className = 'badge badge-warn';
+            } else {
+                el.className = 'badge badge-neutral';
+            }
+        }
+
+        function loadSamplePhish() {
+            const sample = `Received: from mail.attacker-server.ru (mail.attacker-server.ru [185.220.101.5])
+    by mx.targetcorp.com with ESMTP id q41si8274981plb;
+    Thu, 29 Oct 2026 02:20:00 -0700
+Authentication-Results: mx.targetcorp.com;
+    spf=fail (targetcorp.com: domain of admin@paypal.com does not designate 185.220.101.5 as permitted sender);
+    dkim=fail;
+    dmarc=fail action=none header.from=paypal.com
+From: "PayPal Account Security" <scammer@rogue-host.xyz>
+Reply-To: harvest-creds@attacker-drop.com
+Return-Path: <bounces@hacked-domain.net>
+To: victim@targetcorp.com
+Subject: URGENT: Your PayPal Account will be locked in 24 hours!
+Date: Thu, 29 Oct 2026 09:20:00 +0000
+
+Dear Customer,
+Your account has been suspended due to suspicious activity.
+Please verify your credentials immediately by claiming your gift card!`;
+            document.getElementById('rawEmailInput').value = sample;
+            selectedFile = null;
+            document.getElementById('uploadLabel').innerHTML = `📁 Drag & drop a <strong>.eml file</strong> here, or click to browse`;
+        }
+
+        function clearForensics() {
+            document.getElementById('rawEmailInput').value = '';
+            document.getElementById('forensicResults').style.display = 'none';
+            selectedFile = null;
+            document.getElementById('uploadLabel').innerHTML = `📁 Drag & drop a <strong>.eml file</strong> here, or click to browse`;
+        }
+    </script>
 </body>
 </html>
