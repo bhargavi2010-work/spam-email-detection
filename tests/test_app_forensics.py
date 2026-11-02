@@ -42,9 +42,13 @@ Congratulations! You've won a $1000 gift card. Claim now!
     
     forensics = data["data"]
     print("Origin IP:", forensics["traceability"]["origin_ip"])
+    print("Origin Geo Location:", forensics["geolocation"]["origin_geo"]["country"])
+    print("Relay Hops Count:", len(forensics["geolocation"]["relay_hops_geo"]))
     print("Risk Score:", forensics["forensic_assessment"]["risk_score"])
     print("Risk Level:", forensics["forensic_assessment"]["risk_level"])
     print("NLP Result:", forensics["nlp_analysis"])
+    assert "geolocation" in forensics
+    assert forensics["geolocation"]["origin_geo"]["country"] == "Russia"
     print("[PASS] Flask /analyze-email endpoint integration test passed!")
 
 if __name__ == '__main__':

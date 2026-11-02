@@ -2,8 +2,11 @@ from flask import Flask, request, jsonify, render_template
 import pickle
 import re
 import os
+import time
+from datetime import datetime
 from preprocess import preprocess_text
 from forensics import EmailForensicsEngine
+from geoip_resolver import GeoIPResolver
 from flask_cors import CORS
 
 import nltk
@@ -17,8 +20,9 @@ for pkg_name, path_name in [('punkt', 'tokenizers/punkt'), ('stopwords', 'corpor
 app = Flask(__name__)
 CORS(app)
 
-# Initialize Forensics Engine
+# Initialize Forensics & GeoIP Engines
 forensics_engine = EmailForensicsEngine()
+geoip_resolver = GeoIPResolver()
 
 # Load the saved model and vectorizer
 with open('model/metrics.pkl', 'rb') as f:
@@ -33,6 +37,54 @@ with open('model/model.pkl', 'rb') as f:
 with open('model/vectorizer.pkl', 'rb') as f:
     vectorizer = pickle.load(f)
 
+# In-memory Incident Case Store (Sample incidents + newly scanned emails)
+INCIDENTS_DATABASE = [
+    {
+        "case_id": "#SEC-9402",
+        "timestamp": "2026-11-02 08:14:22",
+        "sender": "PayPal Support <scammer@rogue-host.xyz>",
+        "origin_ip": "185.220.101.5",
+        "country": "Russia",
+        "country_code": "RU",
+        "classification": "Credential Phishing / Impersonation",
+        "risk_score": 92,
+        "action": "QUARANTINED"
+    },
+    {
+        "case_id": "#SEC-9398",
+        "timestamp": "2026-11-01 16:45:10",
+        "sender": "CEO John <wire-transfer@finance-corp-update.com>",
+        "origin_ip": "194.109.6.92",
+        "country": "Germany",
+        "country_code": "DE",
+        "classification": "Business Email Compromise (BEC)",
+        "risk_score": 85,
+        "action": "QUARANTINED"
+    },
+    {
+        "case_id": "#SEC-9391",
+        "timestamp": "2026-11-01 11:20:05",
+        "sender": "Google Security <support@google.com>",
+        "origin_ip": "209.85.208.52",
+        "country": "United States",
+        "country_code": "US",
+        "classification": "Legitimate Notification",
+        "risk_score": 0,
+        "action": "DELIVERED"
+    },
+    {
+        "case_id": "#SEC-9384",
+        "timestamp": "2026-10-31 19:05:43",
+        "sender": "Discount Meds <promo@bulk-sales-discount.net>",
+        "origin_ip": "185.234.111.9",
+        "country": "Lithuania",
+        "country_code": "LT",
+        "classification": "Marketing Spam",
+        "risk_score": 45,
+        "action": "FLAGGED"
+    }
+]
+
 # Routes
 @app.route('/')
 def home():
@@ -42,12 +94,13 @@ def home():
         precision=metrics["precision"],
         recall=metrics["recall"],
         spam=pie_data["spam"],
-        ham=pie_data["ham"]
+        ham=pie_data["ham"],
+        incidents=INCIDENTS_DATABASE
     )
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json()
+    data = request.get_json() or {}
     message = data.get('message', '').strip()
 
     # Backend validation
@@ -71,7 +124,7 @@ def predict():
 @app.route('/analyze-email', methods=['POST'])
 def analyze_email():
     """
-    Forensics & Protocol Analysis Endpoint.
+    Forensics, GeoLocation, Protocol Analysis & NLP Classification.
     Accepts:
       - .eml file upload via form-data (key: 'file')
       - raw email text via form-data (key: 'raw_email')
@@ -116,12 +169,58 @@ def analyze_email():
             }
 
         forensic_data['nlp_analysis'] = nlp_result
+
+        # Phase 2: Resolve Origin IP Geolocation & Relay Hop Coordinates
+        origin_ip = forensic_data['traceability']['origin_ip']
+        origin_geo = geoip_resolver.resolve_ip(origin_ip)
+        enriched_hops = geoip_resolver.resolve_relay_hops(forensic_data['traceability']['relay_hops'])
+
+        forensic_data['geolocation'] = {
+            "origin_geo": origin_geo,
+            "relay_hops_geo": enriched_hops
+        }
+
+        # Dynamically record this scan into the Incidents Database
+        case_id = f"#SEC-{int(time.time()) % 10000:04d}"
+        risk_score = forensic_data['forensic_assessment']['risk_score']
+        
+        if risk_score >= 70:
+            classification = "Malicious Phishing / Spoofed"
+            action = "QUARANTINED"
+        elif risk_score >= 35:
+            classification = "Suspicious Origin / Inconclusive"
+            action = "FLAGGED"
+        else:
+            classification = "Clean / Legitimate"
+            action = "DELIVERED"
+
+        incident_entry = {
+            "case_id": case_id,
+            "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            "sender": forensic_data['envelope']['from_header'] or "Unknown",
+            "origin_ip": origin_ip or "N/A",
+            "country": origin_geo.get("country", "Unknown"),
+            "country_code": origin_geo.get("country_code", "UN"),
+            "classification": classification,
+            "risk_score": risk_score,
+            "action": action
+        }
+        INCIDENTS_DATABASE.insert(0, incident_entry)
+
         return jsonify({
             'status': 'success',
-            'data': forensic_data
+            'data': forensic_data,
+            'incident': incident_entry
         })
     except Exception as e:
         return jsonify({'error': f'Failed to parse email: {str(e)}'}), 500
+
+@app.route('/api/incidents', methods=['GET'])
+def get_incidents():
+    return jsonify({
+        'status': 'success',
+        'incidents': INCIDENTS_DATABASE
+    })
 
 @app.route('/performance')
 def performance():

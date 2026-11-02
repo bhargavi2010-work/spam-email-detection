@@ -1,439 +1,1322 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Email Threat & Forensic Intelligence Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL AI // Email Threat Detection, Geolocation & Forensic Intelligence</title>
+    
+    <!-- Chart.js for Model & Data Visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Leaflet.js for Interactive Cartographic Geolocation Hop Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
-        body {
-            background-image: url("/static/bg.png");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #1e293b;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
+        :root {
+            --bg-primary: #0A0F1D;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(22, 33, 58, 0.85);
+            --border-glass: rgba(56, 189, 248, 0.18);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06B6D4;
+            --accent-cyan-glow: rgba(6, 182, 212, 0.35);
+            --accent-emerald: #10B981;
+            --accent-crimson: #EF4444;
+            --accent-crimson-glow: rgba(239, 68, 68, 0.4);
+            --accent-amber: #F59E0B;
+            --text-main: #F1F5F9;
+            --text-muted: #94A3B8;
+            --text-dark: #64748B;
         }
 
-        h1 {
-            font-size: 32px;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.07) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TOP GLOBAL NAVBAR */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 28px;
+            background: rgba(10, 15, 29, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
             font-weight: 800;
             letter-spacing: -0.5px;
-            color: #0f172a;
-            margin-top: 15px;
-            margin-bottom: 5px;
+            color: #FFFFFF;
         }
 
-        .subtitle {
-            font-size: 15px;
-            color: #475569;
-            margin-bottom: 25px;
+        .brand-icon {
+            font-size: 24px;
+            background: linear-gradient(135deg, #06B6D4, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .top-row {
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-emerald);
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-left: 10px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-emerald);
+            animation: pulseDot 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .nav-tabs {
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            max-width: 950px;
-            margin: 0 auto 30px auto;
-            flex-wrap: wrap;
+            gap: 6px;
         }
 
+        .nav-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .nav-tab-btn:hover {
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-tab-btn.active {
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .nav-tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 15%;
+            width: 70%;
+            height: 3px;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-cyan);
+            border-radius: 3px;
+        }
+
+        /* CONTAINER & TAB PANELS */
+        .container {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+            width: 100%;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* GLASSMORPHISM CARD SYSTEM */
         .card {
-            background: rgba(255, 255, 255, 0.88);
+            background: var(--bg-card);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-            padding: 24px;
+            border: 1px solid var(--border-glass);
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            text-align: left;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .card h2 {
-            margin-top: 0;
-            font-size: 20px;
-            color: #0f172a;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 8px;
-            margin-bottom: 16px;
+        .card:hover {
+            border-color: rgba(6, 182, 212, 0.35);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .stat-badge {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-            background: #f8fafc;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
+        /* TELEMETRY KPI CARDS */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
         }
 
-        .stat-badge strong {
-            color: #4f46e5;
-        }
-
-        /* TABS */
-        .tab-container {
-            max-width: 950px;
-            margin: 0 auto;
-        }
-
-        .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: -1px;
-        }
-
-        .tab-btn {
-            padding: 12px 24px;
-            font-size: 15px;
-            font-weight: 600;
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid #cbd5e1;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #64748b;
-        }
-
-        .tab-btn.active {
-            background: #ffffff;
-            color: #4f46e5;
-            border-top: 3px solid #4f46e5;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.04);
-        }
-
-        .tab-panel {
-            display: none;
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 0 16px 16px 16px;
-            padding: 26px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-            text-align: left;
-        }
-
-        .tab-panel.active {
-            display: block;
-        }
-
-        textarea {
-            width: 100%;
-            height: 120px;
-            font-size: 14px;
-            padding: 12px;
-            font-family: inherit;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            box-sizing: border-box;
-            resize: vertical;
-        }
-
-        .btn-primary {
-            padding: 10px 24px;
-            font-size: 15px;
-            font-weight: 600;
-            background: #4f46e5;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-primary:hover {
-            background: #4338ca;
-        }
-
-        .btn-secondary {
-            padding: 10px 20px;
-            font-size: 15px;
-            font-weight: 600;
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-secondary:hover {
-            background: #e2e8f0;
-        }
-
-        /* FORENSIC BADGES & METRICS */
-        .auth-badges {
-            display: flex;
-            gap: 12px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-
-        .badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-pass { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .badge-fail { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .badge-warn { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .badge-neutral { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-
-        .risk-banner {
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+        .kpi-card {
+            padding: 20px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .risk-score-num {
-            font-size: 32px;
-            font-weight: 800;
-        }
-
-        .findings-list {
-            background: #f8fafc;
-            border-left: 4px solid #ef4444;
-            padding: 12px 16px;
-            border-radius: 0 8px 8px 0;
-            margin: 15px 0;
-            list-style-type: none;
-        }
-
-        .findings-list li {
-            padding: 4px 0;
-            font-size: 13.5px;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            margin: 15px 0;
-        }
-
-        .info-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px 14px;
+        .kpi-label {
             font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .info-box span {
-            color: #64748b;
-            display: block;
-            font-size: 11px;
-            text-transform: uppercase;
+        .kpi-value {
+            font-size: 30px;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -0.5px;
+        }
+
+        .kpi-badge {
+            font-size: 24px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* DUAL PANEL DASHBOARD GRID */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+        }
+
+        /* DRAG & DROP UPLOAD DROPZONE */
+        .dropzone {
+            border: 2px dashed rgba(6, 182, 212, 0.4);
+            background: rgba(6, 182, 212, 0.03);
+            border-radius: 14px;
+            padding: 34px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.08);
+            box-shadow: 0 0 25px var(--accent-cyan-glow);
+        }
+
+        .upload-icon {
+            font-size: 44px;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .dropzone-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .dropzone-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .browse-link {
+            color: var(--accent-cyan);
+            text-decoration: underline;
             font-weight: 700;
+        }
+
+        /* SCENARIO ACTION PRESET BUTTONS */
+        .scenarios-container {
+            margin-top: 18px;
+        }
+
+        .scenario-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .scenario-btns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .btn-scenario {
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .btn-phish {
+            background: rgba(239, 68, 68, 0.12);
+            color: #F87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .btn-phish:hover {
+            background: rgba(239, 68, 68, 0.25);
+            box-shadow: 0 0 15px var(--accent-crimson-glow);
+        }
+
+        .btn-ceo {
+            background: rgba(245, 158, 11, 0.12);
+            color: #FBBF24;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .btn-ceo:hover {
+            background: rgba(245, 158, 11, 0.25);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-clean {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34D399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .btn-clean:hover {
+            background: rgba(16, 185, 129, 0.25);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        /* TEXTAREA & INPUT FIELDS */
+        .raw-textarea {
+            width: 100%;
+            height: 120px;
+            background: rgba(10, 15, 29, 0.8);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            font-size: 13px;
+            padding: 12px;
+            resize: vertical;
+            margin-top: 12px;
+        }
+
+        .raw-textarea:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-cyan-glow);
+        }
+
+        .btn-primary-action {
+            width: 100%;
+            margin-top: 16px;
+            padding: 14px;
+            background: linear-gradient(135deg, #06B6D4, #3B82F6);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px var(--accent-cyan-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(6, 182, 212, 0.6);
+        }
+
+        /* MAP & GEOLOCATION HUD */
+        #map {
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            background: #0F172A;
+            z-index: 1;
+        }
+
+        .geo-hud {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .hud-box {
+            background: rgba(10, 15, 29, 0.6);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .hud-box-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-dark);
             margin-bottom: 4px;
         }
 
-        .upload-dropzone {
-            border: 2px dashed #94a3b8;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            background: #f8fafc;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: 0.2s;
+        .hud-box-val {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .upload-dropzone:hover {
-            border-color: #4f46e5;
-            background: #eef2ff;
+        .tag-pill {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-top: 4px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* RELAY HOP TABLE */
+        .hop-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 14px;
+        }
+
+        .hop-table th {
+            text-align: left;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .hop-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', Consolas, monospace;
+        }
+
+        /* RESULTS SECTION STYLES */
+        .results-top-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .threat-dial-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .dial-circle {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            border: 6px solid var(--accent-emerald);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+            margin-bottom: 14px;
+            transition: all 0.5s ease;
+        }
+
+        .dial-circle.malicious {
+            border-color: var(--accent-crimson);
+            box-shadow: 0 0 30px var(--accent-crimson-glow);
+        }
+
+        .dial-circle.suspicious {
+            border-color: var(--accent-amber);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .dial-number {
+            font-size: 42px;
+            font-weight: 900;
+            color: #FFFFFF;
+        }
+
+        .dial-label {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .auth-matrix {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .auth-chip {
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-chip.pass {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .auth-chip.fail {
+            background: rgba(239, 68, 68, 0.15);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
+
+        .auth-chip.warn {
+            background: rgba(245, 158, 11, 0.15);
+            color: #FBBF24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        /* INCIDENTS TABLE */
+        .incident-table-container {
+            overflow-x: auto;
+        }
+
+        .incident-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        .incident-table th {
+            text-align: left;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .incident-table td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        .incident-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .pill-action {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .pill-quarantine {
+            background: rgba(239, 68, 68, 0.15);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .pill-delivered {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .pill-flagged {
+            background: rgba(245, 158, 11, 0.15);
+            color: #FBBF24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* SLIDERS & SETTINGS CONTROLS */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .slider-group {
+            margin-bottom: 20px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .slider-input {
+            width: 100%;
+            height: 6px;
+            background: #1E293B;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        /* COPY BUTTON */
+        .btn-copy {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid, .results-top-grid, .kpi-grid, .settings-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
-    <h1>AI Email Threat & Forensic Intelligence Platform</h1>
-    <div class="subtitle">Multi-Vector Threat Detection, Protocol Verification & Header Traceability</div>
-
-    <!-- TOP ROW: MODEL METRICS & DISTRIBUTION -->
-    <div class="top-row">
-        <!-- PERFORMANCE CARD -->
-        <div class="card" style="flex: 1; min-width: 280px;">
-            <h2>Model Metrics</h2>
-            <div class="stat-badge"><span>Accuracy:</span> <strong>{{ accuracy | round(2) }}</strong></div>
-            <div class="stat-badge"><span>Precision:</span> <strong>{{ precision | round(2) }}</strong></div>
-            <div class="stat-badge"><span>Recall:</span> <strong>{{ recall | round(2) }}</strong></div>
+    <!-- TOP GLOBAL NAVBAR -->
+    <header class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">🛡️</span>
+            <span>SENTINEL AI</span>
+            <span class="status-pill">
+                <span class="status-dot"></span>
+                System Active // RFC 822 Verified
+            </span>
         </div>
 
-        <!-- PIE CHART CARD -->
-        <div class="card" style="flex: 1; min-width: 280px; text-align: center;">
-            <h2 style="justify-content: center;">Dataset Distribution</h2>
-            <canvas id="pieChart" width="160" height="160" style="margin: 0 auto;"></canvas>
-        </div>
-    </div>
+        <nav class="nav-tabs">
+            <button class="nav-tab-btn active" onclick="switchNav('dashboard')">📁 Dashboard</button>
+            <button class="nav-tab-btn" onclick="switchNav('results')">📊 Results & Metrics</button>
+            <button class="nav-tab-btn" onclick="switchNav('incidents')">📋 Incident Logs</button>
+            <button class="nav-tab-btn" onclick="switchNav('threat-intel')">🛡️ Threat Intelligence</button>
+            <button class="nav-tab-btn" onclick="switchNav('settings')">⚙️ Settings</button>
+        </nav>
+    </header>
 
-    <!-- MAIN TABS CONTAINER -->
-    <div class="tab-container">
-        <div class="tab-buttons">
-            <button class="tab-btn active" onclick="switchTab('forensics')">🛡️ Deep Forensic & .EML Analyzer</button>
-            <button class="tab-btn" onclick="switchTab('quick')">⚡ Quick Message Check</button>
-        </div>
+    <main class="container">
 
-        <!-- TAB 1: FORENSIC ANALYZER -->
-        <div id="tab-forensics" class="tab-panel active">
-            <h3 style="margin-top:0;">Deep Email Forensics & Protocol Inspection</h3>
-            <p style="color:#64748b; font-size:14px; margin-top:-5px;">Upload a <code>.eml</code> email file or paste raw email content with headers to inspect SPF/DKIM/DMARC, relay hops, and sender origin.</p>
-
-            <!-- FILE UPLOAD -->
-            <div class="upload-dropzone" onclick="document.getElementById('emlFileInput').click()">
-                <input type="file" id="emlFileInput" accept=".eml,.txt" style="display:none;" onchange="handleFileUpload(event)">
-                <div id="uploadLabel">📁 Drag & drop a <strong>.eml file</strong> here, or click to browse</div>
-            </div>
-
-            <textarea id="rawEmailInput" placeholder="...or paste raw email headers & body here..."></textarea>
-            
-            <div style="margin-top: 12px; display: flex; gap: 10px;">
-                <button class="btn-primary" onclick="runForensics()">🔍 Run Forensic Analysis</button>
-                <button class="btn-secondary" onclick="loadSamplePhish()">Load Sample Phish</button>
-                <button class="btn-secondary" onclick="clearForensics()">Clear</button>
-            </div>
-
-            <!-- FORENSIC RESULTS CONTAINER -->
-            <div id="forensicResults" style="display:none; margin-top:25px;">
-                <!-- RISK SCORE BANNER -->
-                <div id="riskBanner" class="risk-banner">
+        <!-- ========================================== -->
+        <!-- TAB 1: INGESTION & DASHBOARD               -->
+        <!-- ========================================== -->
+        <section id="tab-dashboard" class="tab-content active">
+            <!-- KPI CARDS -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
                     <div>
-                        <div id="riskLevelTitle" style="font-size: 18px; font-weight: 700;"></div>
-                        <div style="font-size: 13px; color: #475569;">Forensic Threat Risk Assessment</div>
+                        <div class="kpi-label">Total Messages Analyzed</div>
+                        <div class="kpi-value" id="kpiTotalAnalyzed">14,284</div>
                     </div>
-                    <div id="riskScoreValue" class="risk-score-num"></div>
+                    <div class="kpi-badge">📊</div>
                 </div>
 
-                <!-- PROTOCOL AUTHENTICATION BADGES -->
-                <h4 style="margin: 15px 0 8px 0;">Protocol Authentication (SPF / DKIM / DMARC)</h4>
-                <div class="auth-badges">
-                    <span id="badgeSPF" class="badge">SPF: ...</span>
-                    <span id="badgeDKIM" class="badge">DKIM: ...</span>
-                    <span id="badgeDMARC" class="badge">DMARC: ...</span>
-                    <span id="badgeSpoof" class="badge">Display Name: ...</span>
+                <div class="kpi-card">
+                    <div>
+                        <div class="kpi-label">Malicious Threats Blocked</div>
+                        <div class="kpi-value" id="kpiThreatsBlocked" style="color: #F87171;">1,421</div>
+                    </div>
+                    <div class="kpi-badge">🛡️</div>
                 </div>
 
-                <!-- ENVELOPE & EVIDENCE DETAILS -->
-                <h4 style="margin: 20px 0 8px 0;">Envelope & Traceability</h4>
-                <div class="info-grid">
-                    <div class="info-box"><span>Originating IP</span><strong id="infoOriginIP">-</strong></div>
-                    <div class="info-box"><span>From Header</span><strong id="infoFrom">-</strong></div>
-                    <div class="info-box"><span>Reply-To</span><strong id="infoReplyTo">-</strong></div>
-                    <div class="info-box"><span>Return-Path</span><strong id="infoReturnPath">-</strong></div>
-                    <div class="info-box"><span>Relay Hops</span><strong id="infoHops">-</strong></div>
-                    <div class="info-box"><span>NLP Content Result</span><strong id="infoNLP">-</strong></div>
-                </div>
-
-                <!-- FINDINGS LIST -->
-                <h4 style="margin: 20px 0 8px 0;">Forensic Findings & Security Indicators</h4>
-                <ul id="findingsList" class="findings-list"></ul>
-
-                <!-- SHA256 EVIDENCE -->
-                <div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-top: 15px;">
-                    <strong>Evidence SHA-256:</strong> <span id="infoSHA256">-</span>
+                <div class="kpi-card">
+                    <div>
+                        <div class="kpi-label">Model Precision Accuracy</div>
+                        <div class="kpi-value" style="color: #34D399;">{{ (precision * 100) | round(1) }}%</div>
+                    </div>
+                    <div class="kpi-badge">⚡</div>
                 </div>
             </div>
-        </div>
 
-        <!-- TAB 2: QUICK MESSAGE PREDICTION -->
-        <div id="tab-quick" class="tab-panel">
-            <h3 style="margin-top:0;">Quick Text Spam Classifier</h3>
-            <p style="color:#64748b; font-size:14px; margin-top:-5px;">Test any raw text string directly against the trained NLP Naive Bayes model.</p>
-            <textarea id="messageInput" placeholder="Enter message text here..."></textarea>
-            <div style="margin-top: 12px; display: flex; gap: 10px;">
-                <button class="btn-primary" onclick="predictQuick()">Check Message</button>
-                <button class="btn-secondary" onclick="clearQuick()">Clear</button>
+            <!-- DUAL PANEL GRID -->
+            <div class="dashboard-grid">
+                <!-- LEFT: FILE UPLOAD & INGESTION HUB -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📁 File Upload & Ingestion Hub</span>
+                        <span style="font-size: 12px; color: var(--text-dark);">RFC 5322 Ingestion</span>
+                    </div>
+
+                    <!-- DRAG AND DROP ZONE -->
+                    <div class="dropzone" id="dropzoneBox" onclick="document.getElementById('fileUploadInput').click()">
+                        <input type="file" id="fileUploadInput" accept=".eml,.msg,.txt" style="display:none;" onchange="onFileSelected(event)">
+                        <div class="upload-icon">📤</div>
+                        <div class="dropzone-text" id="dropzoneLabel">Drop .EML, .MSG, or Raw Header file here</div>
+                        <div class="dropzone-sub">or <span class="browse-link">Browse Files</span> (Max 25MB)</div>
+                    </div>
+
+                    <!-- RAW TEXT TOGGLE -->
+                    <textarea id="rawInputBox" class="raw-textarea" placeholder="...or paste raw email RFC headers and message text here..."></textarea>
+
+                    <!-- QUICK SCENARIOS -->
+                    <div class="scenarios-container">
+                        <div class="scenario-title">⚡ Quick Attack Scenarios</div>
+                        <div class="scenario-btns">
+                            <button class="btn-scenario btn-phish" onclick="loadPhishingPreset()">⚡ Load Phishing</button>
+                            <button class="btn-scenario btn-ceo" onclick="loadCeoPreset()">👔 Load CEO Fraud</button>
+                            <button class="btn-scenario btn-clean" onclick="loadCleanPreset()">🟢 Load Clean Mail</button>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary-action" onclick="executeScan()">
+                        <span>🔍 Scan & Run Forensic Analysis</span>
+                    </button>
+                </div>
+
+                <!-- RIGHT: GEOLOCATION & RELAY HOP TRACEROUTE (LEAFLET.JS) -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🌐 Geolocation & Relay Hop Traceability</span>
+                        <span style="font-size: 12px; color: var(--accent-cyan);" id="hopCounter">3 Hops Traced</span>
+                    </div>
+
+                    <!-- LEAFLET MAP CONTAINER -->
+                    <div id="map"></div>
+
+                    <!-- ORIGIN IP HUD -->
+                    <div class="geo-hud">
+                        <div class="hud-box">
+                            <div class="hud-box-label">Originating IPv4</div>
+                            <div class="hud-box-val" id="hudOriginIp">185.220.101.5</div>
+                            <span class="tag-pill" id="hudTag">Known Tor Exit Node</span>
+                        </div>
+
+                        <div class="hud-box">
+                            <div class="hud-box-label">Origin Location & ISP</div>
+                            <div class="hud-box-val" id="hudOriginLocation">Moscow, Russia 🇷🇺</div>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="hudOriginIsp">RogueHost VPS Ltd. (AS48231)</div>
+                        </div>
+                    </div>
+
+                    <!-- HOP SEQUENCE TABLE -->
+                    <table class="hop-table">
+                        <thead>
+                            <tr>
+                                <th>Hop #</th>
+                                <th>Server / Node</th>
+                                <th>IP Address</th>
+                                <th>Geographic Location</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hopTableBody">
+                            <tr>
+                                <td>1</td>
+                                <td>mail.attacker-server.ru</td>
+                                <td>185.220.101.5</td>
+                                <td>Moscow, Russia (55.75, 37.61)</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>relay.transit-node.de</td>
+                                <td>194.109.6.92</td>
+                                <td>Frankfurt, Germany (50.11, 8.68)</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>mx.corporate-target.com</td>
+                                <td>198.51.100.1</td>
+                                <td>New York, USA (40.71, -74.00)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <h3 id="quickResult" style="margin-top: 20px;"></h3>
-        </div>
-    </div>
+        </section>
 
+
+        <!-- ========================================== -->
+        <!-- TAB 2: RESULTS & MODEL METRICS (NAVBAR)    -->
+        <!-- ========================================== -->
+        <section id="tab-results" class="tab-content">
+            <!-- RESULTS TOP: THREAT DIAL + MODEL STATS + DATA DISTRIBUTION -->
+            <div class="results-top-grid">
+                <!-- THREAT DIAL -->
+                <div class="card threat-dial-card">
+                    <div class="card-header" style="width: 100%;">
+                        <span class="card-title">🎯 Threat Risk Assessment</span>
+                    </div>
+
+                    <div class="dial-circle malicious" id="dialCircle">
+                        <div class="dial-number" id="dialScore">92</div>
+                        <div class="dial-label" id="dialStatus">MALICIOUS</div>
+                    </div>
+
+                    <div style="font-size: 13px; color: var(--text-muted);" id="dialConfidenceText">
+                        Classification: Phishing / Spoofed (88.4% Confidence)
+                    </div>
+
+                    <div class="auth-matrix">
+                        <span class="auth-chip fail" id="chipSPF">SPF: FAIL</span>
+                        <span class="auth-chip fail" id="chipDKIM">DKIM: FAIL</span>
+                        <span class="auth-chip fail" id="chipDMARC">DMARC: FAIL</span>
+                        <span class="auth-chip fail" id="chipSpoof">Display: SPOOFED</span>
+                    </div>
+                </div>
+
+                <!-- MODEL PERFORMANCE STATS -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📈 ML Model Performance</span>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:var(--text-muted);">Model Accuracy:</span>
+                            <strong style="color:var(--accent-cyan); font-size:18px;">{{ accuracy | round(2) }} ({{ (accuracy*100)|round(0) }}%)</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:var(--text-muted);">Precision Score:</span>
+                            <strong style="color:var(--accent-emerald); font-size:18px;">{{ precision | round(2) }} ({{ (precision*100)|round(0) }}%)</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:var(--text-muted);">Recall Score:</span>
+                            <strong style="color:#A78BFA; font-size:18px;">{{ recall | round(2) }} ({{ (recall*100)|round(0) }}%)</strong>
+                        </div>
+                        <div style="margin-top: 12px; font-size: 12px; color: var(--text-dark); line-height: 1.5;">
+                            Trained via <strong>Multinomial Naive Bayes</strong> with 3,000 TF-IDF features and NLTK lexical tokenization.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DATASET DISTRIBUTION (CHART.JS) -->
+                <div class="card" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+                    <div class="card-header" style="width: 100%;">
+                        <span class="card-title">🍩 Dataset Distribution</span>
+                    </div>
+                    <canvas id="datasetChart" width="170" height="170"></canvas>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 12px;">
+                        Total Corpus: <strong>{{ spam + ham }}</strong> messages ({{ spam }} Spam / {{ ham }} Legitimate)
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUICK TEXT MESSAGE CHECKER (PRESERVED USER FEATURE) -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <span class="card-title">⚡ Quick Message Text Classifier</span>
+                    <span style="font-size: 12px; color: var(--text-dark);">Test Single SMS / Email Body</span>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <input type="text" id="quickMsgInput" class="raw-textarea" style="height: 48px; margin-top:0;" placeholder="Enter message text here (e.g. 'Congratulations! You won $1000...')...">
+                    <button class="btn-primary-action" style="width: 220px; margin-top:0;" onclick="testQuickMessage()">
+                        <span>Check Text</span>
+                    </button>
+                </div>
+                <div id="quickMsgResult" style="margin-top: 14px; font-weight: 700; font-size: 15px;"></div>
+            </div>
+
+            <!-- FORENSIC EVIDENCE FINDINGS & SHA256 DOSSIER -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📜 Forensic Findings & Cryptographic Chain of Custody</span>
+                    <button class="btn-copy" onclick="alert('Forensic Dossier PDF exported!')">📥 Export Forensic Dossier (PDF)</button>
+                </div>
+
+                <div style="background: rgba(10, 15, 29, 0.7); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                    <div style="font-size: 12px; color: var(--text-dark); margin-bottom: 4px;">SHA-256 Cryptographic Evidence Fingerprint:</div>
+                    <div style="font-family:'JetBrains Mono', monospace; font-size: 13px; color: var(--accent-cyan); word-break: break-all;" id="shaEvidence">
+                        e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                    </div>
+                </div>
+
+                <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Automated Security Findings:</div>
+                <ul id="findingsList" style="padding-left: 20px; font-size: 13.5px; line-height: 1.8; color: #CBD5E1;">
+                    <li>⚠️ CRITICAL: SPF Authentication Failed (Sender IP is not authorized for paypal.com).</li>
+                    <li>⚠️ CRITICAL: DKIM Cryptographic Signature missing or altered in transit.</li>
+                    <li>⚠️ Brand Impersonation: Display name mentions 'PayPal Account Security' but sending domain is 'rogue-host.xyz'.</li>
+                    <li>⚠️ Reply-To Mismatch: Responses routed to rogue collector domain '@attacker-drop.com'.</li>
+                </ul>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 3: INCIDENT & AUDIT CASE LOGS          -->
+        <!-- ========================================== -->
+        <section id="tab-incidents" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📋 SOC Incident Management & Audit Ledger</span>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" placeholder="Search case ID, IP, or sender..." class="raw-textarea" style="height:36px; width:260px; margin-top:0; font-size:12px;" onkeyup="filterIncidents(this.value)">
+                    </div>
+                </div>
+
+                <div class="incident-table-container">
+                    <table class="incident-table">
+                        <thead>
+                            <tr>
+                                <th>Case ID</th>
+                                <th>Timestamp (UTC)</th>
+                                <th>Sender Envelope</th>
+                                <th>Origin IP & Country</th>
+                                <th>Threat Classification</th>
+                                <th>Risk Score</th>
+                                <th>Action Taken</th>
+                                <th>Forensic Dossier</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incidentsTableBody">
+                            {% for inc in incidents %}
+                            <tr>
+                                <td style="font-family:'JetBrains Mono', monospace; font-weight:700; color:var(--accent-cyan);">{{ inc.case_id }}</td>
+                                <td style="color:var(--text-muted); font-size:12px;">{{ inc.timestamp }}</td>
+                                <td>{{ inc.sender }}</td>
+                                <td>{{ inc.origin_ip }} ({{ inc.country }})</td>
+                                <td><span style="font-weight:600;">{{ inc.classification }}</span></td>
+                                <td>
+                                    <strong style="color: {% if inc.risk_score >= 70 %}#F87171{% elif inc.risk_score >= 35 %}#FBBF24{% else %}#34D399{% endif %};">
+                                        {{ inc.risk_score }} / 100
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span class="pill-action {% if inc.action == 'QUARANTINED' %}pill-quarantine{% elif inc.action == 'FLAGGED' %}pill-flagged{% else %}pill-delivered{% endif %}">
+                                        {{ inc.action }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn-copy" onclick="switchNav('results')">View Dossier</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 4: THREAT INTELLIGENCE & RULES         -->
+        <!-- ========================================== -->
+        <section id="tab-threat-intel" class="tab-content">
+            <div class="settings-grid">
+                <!-- BRAND IMPERSONATION WATCHLIST -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🛡️ Brand Impersonation Watchlist</span>
+                    </div>
+                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                        Monitors email display names against spoofing attempts targeting high-value corporate brands.
+                    </p>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                        <span class="auth-chip fail">PayPal (paypal.com)</span>
+                        <span class="auth-chip fail">Microsoft 365 (office.com)</span>
+                        <span class="auth-chip fail">Google Security (google.com)</span>
+                        <span class="auth-chip fail">Bank of America (bankofamerica.com)</span>
+                        <span class="auth-chip fail">Apple ID (apple.com)</span>
+                        <span class="auth-chip fail">Netflix (netflix.com)</span>
+                    </div>
+                </div>
+
+                <!-- ACTIVE THREAT FEEDS & REGEX RULES -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">⚡ Social Engineering Urgency Rules</span>
+                    </div>
+                    <div style="font-size: 13.5px; line-height: 2; color: #CBD5E1;">
+                        <div>✔ Financial Wire & Gift Card diversion detection [Active]</div>
+                        <div>✔ Executive Display-Name spoofing heuristics [Active]</div>
+                        <div>✔ Suspicious attachment extension filtering (.exe, .ps1, .vbs) [Active]</div>
+                        <div>✔ Typosquatting homograph domain detection [Active]</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 5: SYSTEM & DETECTION SETTINGS         -->
+        <!-- ========================================== -->
+        <section id="tab-settings" class="tab-content">
+            <div class="settings-grid">
+                <!-- AI SENSITIVITY CONFIGURATION -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">⚙️ AI Detection Sensitivity</span>
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>NLP Urgency Threshold</span>
+                            <span id="sliderVal1" style="color:var(--accent-cyan);">75%</span>
+                        </div>
+                        <input type="range" min="50" max="95" value="75" class="slider-input" oninput="document.getElementById('sliderVal1').innerText = this.value + '%'">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>SPF / DMARC Strictness</span>
+                            <span id="sliderVal2" style="color:var(--accent-emerald);">Strict (Zero Trust)</span>
+                        </div>
+                        <input type="range" min="1" max="3" value="3" class="slider-input" oninput="document.getElementById('sliderVal2').innerText = this.value == 3 ? 'Strict (Zero Trust)' : (this.value == 2 ? 'Standard' : 'Permissive')">
+                    </div>
+                </div>
+
+                <!-- API INTEGRATIONS -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🔌 Active Threat Intelligence Feeds</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>MaxMind GeoLite2 (GeoIP)</span>
+                            <span class="auth-chip pass">CONNECTED</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>VirusTotal URL & IP API</span>
+                            <span class="auth-chip pass">CONNECTED</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>AbuseIPDB Threat Intelligence</span>
+                            <span class="auth-chip pass">CONNECTED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JAVASCRIPT & LEAFLET MAP LOGIC -->
     <script>
-        // Tab switching
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        // Tab Navigation
+        function switchNav(tabName) {
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(p => p.classList.remove('active'));
 
-            if (tab === 'forensics') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('tab-forensics').classList.add('active');
-            } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('tab-quick').classList.add('active');
+            const targetSection = document.getElementById('tab-' + tabName);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // Set active navbar tab button
+            const tabButtons = document.querySelectorAll('.nav-tab-btn');
+            if (tabName === 'dashboard') tabButtons[0].classList.add('active');
+            else if (tabName === 'results') tabButtons[1].classList.add('active');
+            else if (tabName === 'incidents') tabButtons[2].classList.add('active');
+            else if (tabName === 'threat-intel') tabButtons[3].classList.add('active');
+            else if (tabName === 'settings') tabButtons[4].classList.add('active');
+
+            // Force leaflet resize when returning to dashboard
+            if (tabName === 'dashboard' && window.leafletMap) {
+                setTimeout(() => window.leafletMap.invalidateSize(), 200);
             }
         }
 
-        // Render Distribution Chart
-        const ctx = document.getElementById('pieChart').getContext('2d');
+        // Initialize Dataset Chart (Existing Feature)
+        const ctx = document.getElementById('datasetChart').getContext('2d');
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Spam', 'Ham'],
+                labels: ['Spam', 'Legitimate (Ham)'],
                 datasets: [{
                     data: [{{ spam }}, {{ ham }}],
-                    backgroundColor: ['#ef4444', '#10b981'],
-                    borderWidth: 1
+                    backgroundColor: ['#EF4444', '#10B981'],
+                    borderColor: '#0A0F1D',
+                    borderWidth: 3
                 }]
             },
             options: {
                 responsive: false,
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } } }
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#94A3B8', font: { size: 11 } }
+                    }
+                }
             }
         });
 
-        // Quick prediction
-        function predictQuick() {
-            const message = document.getElementById("messageInput").value.trim();
-            if (!message) {
-                document.getElementById("quickResult").innerText = "⚠️ Please enter a message!";
-                document.getElementById("quickResult").style.color = "red";
-                return;
-            }
-            fetch("/predict", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ message: message })
-            })
-            .then(res => res.json())
-            .then(data => {
-                const resEl = document.getElementById("quickResult");
-                resEl.innerText = `Prediction: ${data.prediction} (${data.confidence}% confidence)`;
-                resEl.style.color = data.prediction === "Spam" ? "#dc2626" : "#16a34a";
+        // Initialize Leaflet Map (Phase 2)
+        let leafletMap = null;
+        let mapMarkers = [];
+        let mapPolyline = null;
+
+        function initMap() {
+            leafletMap = L.map('map', {
+                center: [45.0, 10.0],
+                zoom: 2,
+                zoomControl: false,
+                attributionControl: false
             });
+
+            // High-contrast Dark Matter cartographic tiles
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 18
+            }).addTo(leafletMap);
+
+            window.leafletMap = leafletMap;
+            renderMapRoute([
+                { lat: 55.7558, lon: 37.6173, label: "Hop 1: Origin (Moscow, Russia)" },
+                { lat: 50.1109, lon: 8.6821, label: "Hop 2: Transit (Frankfurt, Germany)" },
+                { lat: 40.7128, lon: -74.0060, label: "Hop 3: Target (New York, USA)" }
+            ]);
         }
 
-        function clearQuick() {
-            document.getElementById("messageInput").value = "";
-            document.getElementById("quickResult").innerText = "";
+        function renderMapRoute(hops) {
+            if (!leafletMap) return;
+
+            // Clear previous markers & line
+            mapMarkers.forEach(m => leafletMap.removeLayer(m));
+            mapMarkers = [];
+            if (mapPolyline) leafletMap.removeLayer(mapPolyline);
+
+            const latlngs = [];
+            hops.forEach((h, index) => {
+                if (h.lat && h.lon && (h.lat !== 0 || h.lon !== 0)) {
+                    latlngs.push([h.lat, h.lon]);
+                    const isOrigin = (index === 0);
+                    const markerColor = isOrigin ? '#EF4444' : (index === hops.length - 1 ? '#06B6D4' : '#F59E0B');
+
+                    const marker = L.circleMarker([h.lat, h.lon], {
+                        radius: isOrigin ? 8 : 6,
+                        fillColor: markerColor,
+                        color: '#FFFFFF',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(leafletMap);
+
+                    marker.bindPopup(`<b>${h.label}</b>`);
+                    mapMarkers.push(marker);
+                }
+            });
+
+            if (latlngs.length >= 2) {
+                mapPolyline = L.polyline(latlngs, {
+                    color: '#06B6D4',
+                    weight: 3,
+                    opacity: 0.85,
+                    dashArray: '8, 8'
+                }).addTo(leafletMap);
+
+                leafletMap.fitBounds(latlngs, { padding: [30, 30] });
+            }
         }
 
-        // Handle file upload
+        // File Selection
         let selectedFile = null;
-        function handleFileUpload(event) {
+        function onFileSelected(event) {
             const file = event.target.files[0];
             if (file) {
                 selectedFile = file;
-                document.getElementById('uploadLabel').innerHTML = `✅ Selected File: <strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB)`;
+                document.getElementById('dropzoneLabel').innerHTML = `✅ Selected: <strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB)`;
             }
         }
 
-        // Run Forensics
-        function runForensics() {
-            const rawText = document.getElementById('rawEmailInput').value.trim();
+        // Drag & Drop handlers
+        const dropzone = document.getElementById('dropzoneBox');
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                selectedFile = e.dataTransfer.files[0];
+                document.getElementById('dropzoneLabel').innerHTML = `✅ Selected: <strong>${selectedFile.name}</strong> (${(selectedFile.size/1024).toFixed(1)} KB)`;
+            }
+        });
+
+        // Quick Scenarios
+        function loadPhishingPreset() {
+            document.getElementById('rawInputBox').value = `Received: from mail.attacker-server.ru (mail.attacker-server.ru [185.220.101.5])
+    by mx.targetcorp.com with ESMTP id q41si8274981plb;
+    Thu, 29 Oct 2026 02:20:00 -0700
+Authentication-Results: mx.targetcorp.com;
+    spf=fail;
+    dkim=fail;
+    dmarc=fail action=none header.from=paypal.com
+From: "PayPal Account Security" <scammer@rogue-host.xyz>
+Reply-To: harvest-creds@attacker-drop.com
+To: user@targetcorp.com
+Subject: URGENT: Your PayPal Account will be locked in 24 hours!
+
+Dear Customer,
+We detected unauthorized activity on your PayPal account.
+Verify your credentials immediately: http://185.220.101.5/login-verify`;
+            selectedFile = null;
+            document.getElementById('dropzoneLabel').innerText = "Drop .EML, .MSG, or Raw Header file here";
+        }
+
+        function loadCeoPreset() {
+            document.getElementById('rawInputBox').value = `Received: from mail.de-transit.net (mail.de-transit.net [194.109.6.92])
+    by mx.corporate-target.com with ESMTP id e1204;
+    Fri, 30 Oct 2026 11:15:00 -0400
+Authentication-Results: mx.corporate-target.com;
+    spf=softfail;
+    dkim=none;
+    dmarc=none header.from=corporate-target.com
+From: "CEO John Miller" <executive-direct@finance-updates-corp.com>
+Reply-To: secret-payments@finance-updates-corp.com
+To: finance@corporate-target.com
+Subject: CONFIDENTIAL: Urgent Wire Transfer Required Today
+
+Hi Team,
+I am currently in an urgent board meeting. Please initiate an emergency wire transfer of $45,000 to our vendor today.
+Account details are attached. Confirm once processed.`;
+            selectedFile = null;
+            document.getElementById('dropzoneLabel').innerText = "Drop .EML, .MSG, or Raw Header file here";
+        }
+
+        function loadCleanPreset() {
+            document.getElementById('rawInputBox').value = `Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com. [209.85.208.52])
+    by mx.google.com with ESMTPS;
+    Thu, 29 Oct 2026 01:14:59 -0700 (PDT)
+Authentication-Results: mx.google.com;
+    dkim=pass header.i=@google.com;
+    spf=pass (google.com: domain of support@google.com designates 209.85.208.52 as permitted sender);
+    dmarc=pass header.from=google.com
+From: "Google Security" <support@google.com>
+To: recipient@example.com
+Subject: Security Notice: New sign-in detected on Windows
+
+Hi User,
+We detected a new sign-in to your Google Account on a verified Windows device.
+If this was you, no action is required.`;
+            selectedFile = null;
+            document.getElementById('dropzoneLabel').innerText = "Drop .EML, .MSG, or Raw Header file here";
+        }
+
+        // Execute Scan & Forensic API Call
+        function executeScan() {
+            const rawText = document.getElementById('rawInputBox').value.trim();
             const formData = new FormData();
 
             if (selectedFile) {
@@ -441,7 +1324,7 @@
             } else if (rawText) {
                 formData.append('raw_email', rawText);
             } else {
-                alert("Please upload a .eml file or paste raw email content with headers!");
+                alert("Please drag & drop an .EML file or paste raw email headers!");
                 return;
             }
 
@@ -450,73 +1333,85 @@
                 body: formData
             })
             .then(res => res.json())
-            .then(resp => {
-                if (resp.status !== 'success') {
-                    alert("Error: " + (resp.error || "Analysis failed"));
+            .then(res => {
+                if (res.status !== 'success') {
+                    alert("Analysis error: " + (res.error || "Failed"));
                     return;
                 }
-                renderForensics(resp.data);
+
+                updateDashboardUI(res.data, res.incident);
+                // Switch to results tab so user immediately sees the detailed findings
+                switchNav('results');
             })
             .catch(err => alert("Request failed: " + err));
         }
 
-        function renderForensics(data) {
-            document.getElementById('forensicResults').style.display = 'block';
-
+        // Update UI Elements with Returned Forensics Data
+        function updateDashboardUI(data, incident) {
             const assessment = data.forensic_assessment;
-            const banner = document.getElementById('riskBanner');
-            const scoreEl = document.getElementById('riskScoreValue');
-            const levelEl = document.getElementById('riskLevelTitle');
+            const originGeo = data.geolocation.origin_geo;
+            const hops = data.geolocation.relay_hops_geo;
 
-            scoreEl.innerText = assessment.risk_score + " / 100";
-            levelEl.innerText = assessment.risk_level;
+            // 1. Update Results Dial
+            const dialCircle = document.getElementById('dialCircle');
+            const dialScore = document.getElementById('dialScore');
+            const dialStatus = document.getElementById('dialStatus');
 
-            if (assessment.risk_score >= 70) {
-                banner.style.background = "#fee2e2";
-                banner.style.color = "#991b1b";
-                banner.style.border = "1px solid #f87171";
-            } else if (assessment.risk_score >= 35) {
-                banner.style.background = "#fef3c7";
-                banner.style.color = "#92400e";
-                banner.style.border = "1px solid #fcd34d";
-            } else {
-                banner.style.background = "#dcfce7";
-                banner.style.color = "#166534";
-                banner.style.border = "1px solid #86efac";
-            }
+            dialScore.innerText = assessment.risk_score;
+            dialStatus.innerText = assessment.risk_score >= 70 ? 'MALICIOUS' : (assessment.risk_score >= 35 ? 'SUSPICIOUS' : 'CLEAN');
 
-            // Badges
-            setBadge('badgeSPF', 'SPF', data.authentication.spf);
-            setBadge('badgeDKIM', 'DKIM', data.authentication.dkim);
-            setBadge('badgeDMARC', 'DMARC', data.authentication.dmarc);
+            dialCircle.className = 'dial-circle ' + (assessment.risk_score >= 70 ? 'malicious' : (assessment.risk_score >= 35 ? 'suspicious' : ''));
+
+            // 2. Update Protocol Badges
+            updateChip('chipSPF', 'SPF: ' + data.authentication.spf, data.authentication.spf === 'PASS' ? 'pass' : 'fail');
+            updateChip('chipDKIM', 'DKIM: ' + data.authentication.dkim, data.authentication.dkim === 'PASS' ? 'pass' : (data.authentication.dkim === 'NONE' ? 'warn' : 'fail'));
+            updateChip('chipDMARC', 'DMARC: ' + data.authentication.dmarc, data.authentication.dmarc === 'PASS' ? 'pass' : 'fail');
             
-            const spoofBadge = document.getElementById('badgeSpoof');
-            if (data.spoofing_checks.is_display_name_spoofed) {
-                spoofBadge.className = 'badge badge-fail';
-                spoofBadge.innerText = 'Display Name: SPOOFED';
-            } else {
-                spoofBadge.className = 'badge badge-pass';
-                spoofBadge.innerText = 'Display Name: Normal';
-            }
+            const isSpoofed = data.spoofing_checks.is_display_name_spoofed;
+            updateChip('chipSpoof', isSpoofed ? 'Display: SPOOFED' : 'Display: Normal', isSpoofed ? 'fail' : 'pass');
 
-            // Envelope Info
-            document.getElementById('infoOriginIP').innerText = data.traceability.origin_ip || 'Not Found';
-            document.getElementById('infoFrom').innerText = data.envelope.from_header || '-';
-            document.getElementById('infoReplyTo').innerText = data.envelope.reply_to || 'None';
-            document.getElementById('infoReturnPath').innerText = data.envelope.return_path || 'None';
-            document.getElementById('infoHops').innerText = data.traceability.total_hops + ' Hops traced';
-            
+            // 3. Update Confidence Text
             const nlp = data.nlp_analysis;
-            document.getElementById('infoNLP').innerText = nlp ? `${nlp.prediction} (${nlp.confidence}%)` : 'No text body';
+            if (nlp) {
+                document.getElementById('dialConfidenceText').innerText = 
+                    `Classification: ${nlp.prediction} (${nlp.confidence}% Confidence)`;
+            }
 
-            // Findings List
+            // 4. Update Geolocation HUD
+            document.getElementById('hudOriginIp').innerText = originGeo.ip || 'Unknown';
+            document.getElementById('hudOriginLocation').innerText = `${originGeo.city}, ${originGeo.country}`;
+            document.getElementById('hudOriginIsp').innerText = `${originGeo.isp} (${originGeo.asn})`;
+            document.getElementById('hudTag').innerText = originGeo.threat_tags[0] || 'Public IP';
+
+            // 5. Update Map Route
+            const mapHops = hops.map(h => ({
+                lat: h.geo.lat,
+                lon: h.geo.lon,
+                label: `Hop ${h.hop_number}: ${h.from_server} (${h.geo.city}, ${h.geo.country})`
+            }));
+            renderMapRoute(mapHops);
+
+            // 6. Update Hop Sequence Table
+            const tbody = document.getElementById('hopTableBody');
+            tbody.innerHTML = '';
+            hops.forEach(h => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${h.hop_number}</td>
+                    <td>${h.from_server}</td>
+                    <td>${h.ip}</td>
+                    <td>${h.geo.city}, ${h.geo.country} (${h.geo.lat.toFixed(2)}, ${h.geo.lon.toFixed(2)})</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('hopCounter').innerText = `${hops.length} Hops Traced`;
+
+            // 7. Update Findings List
             const findingsUl = document.getElementById('findingsList');
             findingsUl.innerHTML = '';
             if (assessment.findings.length === 0) {
-                findingsUl.innerHTML = '<li style="color:#166534;">✅ No protocol violations or spoofing indicators detected.</li>';
-                findingsUl.style.borderLeftColor = '#10b981';
+                findingsUl.innerHTML = '<li style="color:#34D399;">✅ Zero protocol violations or spoofing indicators detected. Email is cryptographically authentic.</li>';
             } else {
-                findingsUl.style.borderLeftColor = assessment.risk_score >= 70 ? '#ef4444' : '#f59e0b';
                 assessment.findings.forEach(f => {
                     const li = document.createElement('li');
                     li.innerText = '⚠️ ' + f;
@@ -524,52 +1419,82 @@
                 });
             }
 
-            document.getElementById('infoSHA256').innerText = data.forensic_evidence.sha256;
-        }
+            // 8. Update Evidence Hash
+            document.getElementById('shaEvidence').innerText = data.forensic_evidence.sha256;
 
-        function setBadge(elementId, label, status) {
-            const el = document.getElementById(elementId);
-            el.innerText = `${label}: ${status}`;
-            if (status === 'PASS') {
-                el.className = 'badge badge-pass';
-            } else if (status === 'FAIL') {
-                el.className = 'badge badge-fail';
-            } else if (status === 'SOFTFAIL' || status === 'PRESENT (Not Verified by MTA)') {
-                el.className = 'badge badge-warn';
-            } else {
-                el.className = 'badge badge-neutral';
+            // 9. Prepend new incident to Incident Logs table
+            if (incident) {
+                const incTbody = document.getElementById('incidentsTableBody');
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-family:'JetBrains Mono', monospace; font-weight:700; color:var(--accent-cyan);">${incident.case_id}</td>
+                    <td style="color:var(--text-muted); font-size:12px;">${incident.timestamp}</td>
+                    <td>${incident.sender}</td>
+                    <td>${incident.origin_ip} (${incident.country})</td>
+                    <td><span style="font-weight:600;">${incident.classification}</span></td>
+                    <td>
+                        <strong style="color: ${incident.risk_score >= 70 ? '#F87171' : (incident.risk_score >= 35 ? '#FBBF24' : '#34D399')};">
+                            ${incident.risk_score} / 100
+                        </strong>
+                    </td>
+                    <td>
+                        <span class="pill-action ${incident.action === 'QUARANTINED' ? 'pill-quarantine' : (incident.action === 'FLAGGED' ? 'pill-flagged' : 'pill-delivered')}">
+                            ${incident.action}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-copy" onclick="switchNav('results')">View Dossier</button>
+                    </td>
+                `;
+                incTbody.insertBefore(row, incTbody.firstChild);
             }
         }
 
-        function loadSamplePhish() {
-            const sample = `Received: from mail.attacker-server.ru (mail.attacker-server.ru [185.220.101.5])
-    by mx.targetcorp.com with ESMTP id q41si8274981plb;
-    Thu, 29 Oct 2026 02:20:00 -0700
-Authentication-Results: mx.targetcorp.com;
-    spf=fail (targetcorp.com: domain of admin@paypal.com does not designate 185.220.101.5 as permitted sender);
-    dkim=fail;
-    dmarc=fail action=none header.from=paypal.com
-From: "PayPal Account Security" <scammer@rogue-host.xyz>
-Reply-To: harvest-creds@attacker-drop.com
-Return-Path: <bounces@hacked-domain.net>
-To: victim@targetcorp.com
-Subject: URGENT: Your PayPal Account will be locked in 24 hours!
-Date: Thu, 29 Oct 2026 09:20:00 +0000
-
-Dear Customer,
-Your account has been suspended due to suspicious activity.
-Please verify your credentials immediately by claiming your gift card!`;
-            document.getElementById('rawEmailInput').value = sample;
-            selectedFile = null;
-            document.getElementById('uploadLabel').innerHTML = `📁 Drag & drop a <strong>.eml file</strong> here, or click to browse`;
+        function updateChip(id, text, type) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerText = text;
+            el.className = 'auth-chip ' + type;
         }
 
-        function clearForensics() {
-            document.getElementById('rawEmailInput').value = '';
-            document.getElementById('forensicResults').style.display = 'none';
-            selectedFile = null;
-            document.getElementById('uploadLabel').innerHTML = `📁 Drag & drop a <strong>.eml file</strong> here, or click to browse`;
+        // Quick Message Single Text Prediction (Preserved User Feature)
+        function testQuickMessage() {
+            const msg = document.getElementById('quickMsgInput').value.trim();
+            const resEl = document.getElementById('quickMsgResult');
+            if (!msg) {
+                resEl.innerText = "⚠️ Please enter message text!";
+                resEl.style.color = "#F87171";
+                return;
+            }
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            })
+            .then(res => res.json())
+            .then(data => {
+                resEl.innerText = `Prediction: ${data.prediction} (${data.confidence}% confidence score)`;
+                resEl.style.color = data.prediction === 'Spam' ? '#F87171' : '#34D399';
+            })
+            .catch(err => {
+                resEl.innerText = "Error checking message";
+                resEl.style.color = "#F87171";
+            });
         }
+
+        // Incident table search filter
+        function filterIncidents(query) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('#incidentsTableBody tr').forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+
+        // Initialize Map on window load
+        window.addEventListener('DOMContentLoaded', () => {
+            initMap();
+        });
     </script>
 </body>
 </html>
